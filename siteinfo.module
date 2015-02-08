@@ -1,0 +1,226 @@
+<?php
+
+/**
+ * @file
+ * Provides brief information about site.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function siteinfo_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#siteinfo':
+      $output = '';
+      $output .= '<p>' . t('Siteinfo is a module that provide brief information about the site. The information it provide like:- drupal version, database, php version, users, roles, content-type, modules. That information userful to site admin.') . '</p>';
+      return $output;
+  }
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function siteinfo_menu() {
+  
+  $items['admin/siteinfo'] = array(
+    'title' => 'Site Information',
+    'description' => 'Brief information about site',
+    'page callback' => 'siteinfo_details',
+    'access arguments' => array('access admin information'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implement hook_permission().
+ */
+function siteinfo_permission() {
+  return array(
+    'access admin information' => array(
+      'description' => t('View site information.'),
+      'title' => t('Access admin information'),
+      'restrict access' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function siteinfo_block_info() {
+  
+  $blocks['siteinfo'] = array(
+  	// info: The name of the block.
+    'info' => t('Site Information'),
+  );
+  
+  return $blocks;
+}
+ 
+ /**
+ * Implements hook_block_view().
+ */
+function siteinfo_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'siteinfo':
+      $block['subject'] = t('Site Information');
+	  $block['content'] = siteinfo_details();
+      break;
+  }
+  return $block;
+}
+
+
+/**
+ * Implements siteinfo_details function().
+ */
+function siteinfo_details() {
+	
+	global $databases;	
+	$db_name = $databases['default']['default']['database'];
+	$db_driver = $databases['default']['default']['driver'];
+    $php_version = phpversion();
+	$roles = user_roles(true);
+	$count_role = sizeof($roles);
+
+    //Access site variables.
+	$site_name = variable_get('site_name');
+	$default_theme = variable_get('theme_default');
+	$admin_theme = variable_get('admin_theme');
+	$file_temporary_path = variable_get('file_temporary_path');
+	$install_time = variable_get('install_time');
+	$cron_last_run = variable_get('cron_last');
+	$clean_url = variable_get('clean_url');
+
+	$install_date = format_date($install_time, 'dateonly');
+	$cron_run = format_date($cron_last_run, 'dateonly');
+	$cln_url = isset($clean_url) ? "Yes" : "No";
+	
+	//Load user entity
+	$user_list = entity_load('user');
+	$number_user = count($user_list);
+
+    //Get list of content type
+	$cont_type = node_type_get_types();
+	$number_cont_type = sizeof($cont_type);
+
+    //Get list of enabled module
+	$mod_list = module_list($refresh = FALSE, $bootstrap_refresh = FALSE, $sort = FALSE, $fixed_list = NULL);
+	$number_mod = count($mod_list);
+	$drupal_version = VERSION;
+   
+	$header = array(
+        array('data' => "Site Details", 'colspan' => 2));
+
+	$rows['site_name'] = array('data' => array("Site name", $site_name)); 
+	$rows['drupal_version'] = array("Drupal version", $drupal_version); 
+	$rows['install_date'] = array("Install date", $install_date); 
+	$rows['cron_run'] = array("Last cron run", $cron_run); 
+	$rows['cln_url'] = array("Clean url", $cln_url); 
+	$rows['file_temporary_path'] = array("File temporary path", $file_temporary_path); 	
+	$rows['php_version'] = array("Php version", $php_version); 
+	$rows['db_driver'] = array("Database driver", $db_driver); 
+	$rows['db_name'] = array("Database name", $db_name); 
+	$rows['default_theme'] = array("Default theme", $default_theme); 
+	$rows['admin_theme'] = array("Admin theme", $admin_theme); 
+	$rows['count_role'] = array("Roles", $count_role);
+	$rows['number_user'] = array("Users", $number_user); 
+	$rows['number_cont_type'] = array("Content type", $number_cont_type); 
+	$rows['number_mod'] = array("Enables module", $number_mod); 
+	
+	$output = theme('table', 
+           array('header' => $header, 
+                  'rows' => $rows));
+
+	$lim = 0;
+	foreach ($cont_type as $key => $value) {
+		$row_col[$lim][0] = $value->name;
+		
+		$query = new EntityFieldQuery();
+		$query->entityCondition('entity_type', 'node') // grab nodes
+		->entityCondition('bundle', $key) // filter by content type
+		->propertyCondition('status', 1) // filter by published
+		->count(); // count
+
+		$result = $query->execute();
+		$row_col[$lim][1] = $result;
+		$lim++;
+	}
+	
+	$lim = 0;
+	foreach ($roles as $key) {
+		if (!isset($row_col[$lim][0])) {
+			$row_col[$lim][1] = "";
+		}
+		$row_col[$lim][2] = $key;
+		$lim++;
+	}
+
+	$lim = 0;
+	foreach ($mod_list as $key) {
+		if (!isset($row_col[$lim][0])) {
+			$row_col[$lim][0] = "";
+		}
+		if (!isset($row_col[$lim][1])) {
+			$row_col[$lim][1] = "";
+		}
+		if (!isset($row_col[$lim][2])) {
+			$row_col[$lim][2] = "";
+		}
+		$row_col[$lim][3] = $key;
+		$lim++;
+	}
+	
+	$lim = 0;
+	foreach ($user_list as $key => $value) {
+
+		if (!isset($row_col[$lim][0])) {
+			$row_col[$lim][0] = "";
+		}
+		if (!isset($row_col[$lim][1])) {
+			$row_col[$lim][1] = "";
+		}
+		if (!isset($row_col[$lim][2])) {
+			$row_col[$lim][2] = "";
+		}
+		if (!isset($row_col[$lim][3])) {
+			$row_col[$lim][3] = "";
+		}
+		if (empty($value->name)) {
+			
+			$row_col[$lim][4] = "Anonymous";
+		    
+		} else {	
+			$row_col[$lim][4] = $value->name; 
+		}
+		$lim++;
+	}
+	
+	$lim = 0;
+	foreach ($row_col as $key => $value) {
+		if (!isset($row_col[$lim][4])) {
+			$row_col[$lim][4] = "";
+		}
+		$lim++;
+	}
+	
+	$per_page = 10;
+	//Initialize the pager
+	$current_page = pager_default_initialize(count($row_col), $per_page);
+	
+    //Split list into page sized chunks
+	$chunks = array_chunk($row_col, $per_page, TRUE);
+	$header = array('Content Type', 'Node', 'Roles', 'Modules', 'Users');
+	$output .= theme('table', 
+        array('header' => $header, 
+            'rows' => $chunks[$current_page]));
+
+	//Show the pager
+	$output .= theme('pager', array('quantity', count($row_col)));
+	
+return $output;
+}

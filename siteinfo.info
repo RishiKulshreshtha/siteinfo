@@ -1,1 +1,4 @@
-name = Siteinfo
+name = "Site Information"
+description = "Used for site information."
+core = "7.x"
+
