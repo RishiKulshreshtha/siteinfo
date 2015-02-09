@@ -51,7 +51,7 @@ function siteinfo_permission() {
  */
 function siteinfo_block_info() {
   $blocks['siteinfo'] = array(
-      // info: The name of the block.
+    // The name of the block.
     'info' => t('Site Information'),
   );
 

@@ -1,4 +1,3 @@
-name = "Site Information"
-description = "Used for site information."
-core = "7.x"
-
+name = Site Information
+description = Provides the users to have a quick glance over the site information.
+core = 7.x
