@@ -39,8 +39,8 @@ function siteinfo_menu() {
 function siteinfo_permission() {
   return array(
     'access admin information' => array(
-      'description' => t('View site information.'),
       'title' => t('Access admin information'),
+      'description' => t('View site information.'),
       'restrict access' => TRUE,
     ),
   );
