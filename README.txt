@@ -10,8 +10,7 @@ CONTENTS OF THIS FILE
 INTRODUCTION
 ------------
 
-siteinfo is a module which display site related information. This module extends Drupal to provide
-brief inforamtion about website to the users.
+Siteinfo is a module which display site related information like:- about site, drupal, php, database, etc. This module extends Drupal to provide brief inforamtion about website. That information helpful to site admin. Site admin got site information in one page. 
 
  
 INSTALLATION

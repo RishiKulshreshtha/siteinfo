@@ -12,7 +12,8 @@ function siteinfo_help($path, $arg) {
   switch ($path) {
     case 'admin/help#siteinfo':
       $output = '';
-      $output .= '<p>' . t('Siteinfo is a module that provide brief information about the site. The information it provide like:- drupal version, database, php version, users, roles, content-type, modules. That information userful to site admin.') . '</p>';
+      $output .= '<p>' . t('Siteinfo is a module which display site related information like:- about site, drupal, php, database, etc. This module extends Drupal to provide brief inforamtion about website. That information helpful to site admin. Site admin got site information in one page. 
+') . '</p>';
       return $output;
   }
 }
