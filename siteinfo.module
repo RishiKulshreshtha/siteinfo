@@ -107,7 +107,7 @@ function siteinfo_details() {
   $number_cont_type = count($cont_type);
 
   // Get list of enabled module.
-  $mod_list = module_list($refresh = FALSE, $bootstrap_refresh = FALSE, $sort = FALSE, $fixed_list = NULL);
+  $mod_list = module_list();
   $number_mod = count($mod_list);
   $drupal_version = VERSION;
 
