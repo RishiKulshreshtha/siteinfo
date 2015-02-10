@@ -18,7 +18,6 @@ function siteinfo_help($path, $arg) {
   }
 }
 
-
 /**
  * Implements hook_menu().
  */
@@ -73,9 +72,11 @@ function siteinfo_block_view($delta = '') {
   return $block;
 }
 
-
 /**
  * Implements siteinfo_details function().
+ *
+ * @return
+ *   Theme object for information.
  */
 function siteinfo_details() {
   global $databases;
@@ -136,14 +137,14 @@ function siteinfo_details() {
     $row_col[$lim][0] = $value->name;
 
     $query = new EntityFieldQuery();
-    $query->entityCondition('entity_type', 'node')
     // Grab nodes.
-      ->entityCondition('bundle', $key)
+    $query->entityCondition('entity_type', 'node')
     // Filter by content type.
-      ->propertyCondition('status', 1)
+    ->entityCondition('bundle', $key)
     // Filter by published.
-      ->count();
+    ->propertyCondition('status', 1)
     // Count.
+    ->count();
     $result = $query->execute();
     $row_col[$lim][1] = $result;
     $lim++;
