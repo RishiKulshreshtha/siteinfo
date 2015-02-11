@@ -140,11 +140,11 @@ function siteinfo_details() {
     // Grab nodes.
     $query->entityCondition('entity_type', 'node')
     // Filter by content type.
-    ->entityCondition('bundle', $key)
+      ->entityCondition('bundle', $key)
     // Filter by published.
-    ->propertyCondition('status', 1)
+      ->propertyCondition('status', 1)
     // Count.
-    ->count();
+      ->count();
     $result = $query->execute();
     $row_col[$lim][1] = $result;
     $lim++;
