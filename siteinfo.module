@@ -75,8 +75,8 @@ function siteinfo_block_view($delta = '') {
 /**
  * Implements siteinfo_details function().
  *
- * @return
- *   Theme object for information.
+ * @return string
+ *   An HTML string representing the themed output for site information.
  */
 function siteinfo_details() {
   global $databases;
@@ -99,42 +99,76 @@ function siteinfo_details() {
   $cron_run = format_date($cron_last_run, 'dateonly');
   $cln_url = isset($clean_url) ? "Yes" : "No";
 
-  // Load user entity.
-  $user_list = entity_load('user');
-  $number_user = count($user_list);
+  // Get list of enabled module.
+  $query = db_select('users', 'u');
+  $query->fields('u', array('name'));
+  $query->condition('status', 1, '=');
+  // Filter by active user.
+  $user_name = $query->execute()->fetchAllKeyed(0, 0);
+  $count_user = count($user_name);
 
   // Get list of content type.
   $cont_type = node_type_get_types();
-  $number_cont_type = count($cont_type);
+  $count_cont_type = count($cont_type);
 
   // Get list of enabled module.
   $mod_list = module_list();
-  $number_mod = count($mod_list);
+  $count_mod = count($mod_list);
   $drupal_version = VERSION;
 
   $header = array(array('data' => "Site Details", 'colspan' => 2));
 
-  $rows['site_name'] = array('data' => array("Site name", $site_name));
-  $rows['drupal_version'] = array("Drupal version", $drupal_version);
-  $rows['install_date'] = array("Install date", $install_date);
-  $rows['cron_run'] = array("Last cron run", $cron_run);
-  $rows['cln_url'] = array("Clean url", $cln_url);
-  $rows['file_temporary_path'] = array("File temporary path", $file_temporary_path);
-  $rows['php_version'] = array("Php version", $php_version);
-  $rows['db_driver'] = array("Database driver", $db_driver);
-  $rows['db_name'] = array("Database name", $db_name);
-  $rows['default_theme'] = array("Default theme", $default_theme);
-  $rows['admin_theme'] = array("Admin theme", $admin_theme);
-  $rows['count_role'] = array("Roles", $count_role);
-  $rows['number_user'] = array("Users", $number_user);
-  $rows['number_cont_type'] = array("Content type", $number_cont_type);
-  $rows['number_mod'] = array("Enables module", $number_mod);
+  $rows['site_name'] = array(
+    t("Site name"), t("@site_name", array('@site_name' => $site_name)),
+  );
+  $rows['drupal_version'] = array(
+    t("Drupal version"), t("@dr_ver", array('@dr_ver' => $drupal_version)),
+  );
+  $rows['install_date'] = array(
+    t("Install date"), t("@ins_date", array('@ins_date' => $install_date)),
+  );
+  $rows['cron_run'] = array(
+    t("Last cron run"), t("@cron_run", array('@cron_run' => $cron_run)),
+  );
+  $rows['cln_url'] = array(
+    t("Clean url"), t("@clr_url", array('@clr_url' => $cln_url)),
+  );
+  $rows['file_temporary_path'] = array(
+    t("File temporary path"), t("@ftem_path", array('@ftem_path' => $file_temporary_path)),
+  );
+  $rows['php_version'] = array(
+    t("Php version"), t("@php_ver", array('@php_ver' => $php_version)),
+  );
+  $rows['db_driver'] = array(
+    t("Database driver"), t("@db_driv", array('@db_driv' => $db_driver)),
+  );
+  $rows['db_name'] = array(
+    t("Database name"), t("@db_name", array('@db_name' => $db_name)),
+  );
+  $rows['default_theme'] = array(
+    t("Default theme"), t("@def_theme", array('@def_theme' => $default_theme)),
+  );
+  $rows['admin_theme'] = array(
+    t("Admin theme"), t("@admin_theme", array('@admin_theme' => $admin_theme)),
+  );
+  $rows['count_role'] = array(
+    t("Roles"), t("@count_role", array('@count_role' => $count_role)),
+  );
+  $rows['count_user'] = array(
+    t("Active users"), t("@count_usr", array('@count_usr' => $count_user)),
+  );
+  $rows['count_cont_type'] = array(
+    t("Content type"), t("@count_cont", array('@count_cont' => $count_cont_type)),
+  );
+  $rows['count_mod'] = array(
+    t("Enables module"), t("@count_mod", array('@count_mod' => $count_mod)),
+  );
 
   $output = theme('table', array('header' => $header, 'rows' => $rows));
 
   $lim = 0;
   foreach ($cont_type as $key => $value) {
-    $row_col[$lim][0] = $value->name;
+    $row_col[$lim][0] = t("@cont_name", array('@cont_name' => $value->name));
 
     $query = new EntityFieldQuery();
     // Grab nodes.
@@ -146,7 +180,7 @@ function siteinfo_details() {
     // Count.
       ->count();
     $result = $query->execute();
-    $row_col[$lim][1] = $result;
+    $row_col[$lim][1] = t("@cout_node", array('@cout_node' => $result));
     $lim++;
   }
 
@@ -155,7 +189,7 @@ function siteinfo_details() {
     if (!isset($row_col[$lim][0])) {
       $row_col[$lim][1] = "";
     }
-    $row_col[$lim][2] = $key;
+    $row_col[$lim][2] = t("@role_name", array('@role_name' => $key));
     $lim++;
   }
 
@@ -170,12 +204,12 @@ function siteinfo_details() {
     if (!isset($row_col[$lim][2])) {
       $row_col[$lim][2] = "";
     }
-    $row_col[$lim][3] = $key;
+    $row_col[$lim][3] = t("@mod_name", array('@mod_name' => $key));
     $lim++;
   }
 
   $lim = 0;
-  foreach ($user_list as $key => $value) {
+  foreach ($user_name as $key => $value) {
 
     if (!isset($row_col[$lim][0])) {
       $row_col[$lim][0] = "";
@@ -189,12 +223,9 @@ function siteinfo_details() {
     if (!isset($row_col[$lim][3])) {
       $row_col[$lim][3] = "";
     }
-    if (empty($value->name)) {
-      $row_col[$lim][4] = "Anonymous";
-    }
-    else {
-      $row_col[$lim][4] = $value->name;
-    }
+
+    $row_col[$lim][4] = t("@usr_name", array('@usr_name' => $value));
+
     $lim++;
   }
 
@@ -211,7 +242,7 @@ function siteinfo_details() {
   $current_page = pager_default_initialize(count($row_col), $per_page);
   // Split list into page sized chunks.
   $chunks = array_chunk($row_col, $per_page, TRUE);
-  $header = array('Content Type', 'Node', 'Roles', 'Modules', 'Users');
+  $header = array('Content Type', 'Node', 'Roles', 'Modules', 'Active users');
   $output .= theme('table', array('header' => $header, 'rows' => $chunks[$current_page]));
   // Show the pager.
   $output .= theme('pager', array('quantity', count($row_col)));
