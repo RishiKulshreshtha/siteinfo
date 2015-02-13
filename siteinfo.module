@@ -26,7 +26,7 @@ function siteinfo_menu() {
     'title' => 'Site Information',
     'description' => 'Brief information about site',
     'page callback' => 'siteinfo_details',
-    'access arguments' => array('access admin information'),
+    'access arguments' => array('access site information'),
   );
 
   return $items;
@@ -37,8 +37,8 @@ function siteinfo_menu() {
  */
 function siteinfo_permission() {
   return array(
-    'access admin information' => array(
-      'title' => t('Access admin information'),
+    'access site information' => array(
+      'title' => t('Access site information'),
       'description' => t('View site information.'),
       'restrict access' => TRUE,
     ),
@@ -66,7 +66,7 @@ function siteinfo_block_view($delta = '') {
   switch ($delta) {
     case 'siteinfo':
       $block['subject'] = t('Site Information');
-      $block['content'] = siteinfo_details();
+      $block['content'] = render(siteinfo_details());
       break;
   }
   return $block;
@@ -167,6 +167,7 @@ function siteinfo_details() {
   $output = theme('table', array('header' => $header, 'rows' => $rows));
 
   $lim = 0;
+  // Iteration for content-type.
   foreach ($cont_type as $key => $value) {
     $row_col[$lim][0] = t("@cont_name", array('@cont_name' => $value->name));
 
@@ -185,6 +186,7 @@ function siteinfo_details() {
   }
 
   $lim = 0;
+  // Iteration for roles.
   foreach ($roles as $key) {
     if (!isset($row_col[$lim][0])) {
       $row_col[$lim][1] = "";
@@ -194,6 +196,7 @@ function siteinfo_details() {
   }
 
   $lim = 0;
+  // Iteration for modules.
   foreach ($mod_list as $key) {
     if (!isset($row_col[$lim][0])) {
       $row_col[$lim][0] = "";
@@ -209,6 +212,7 @@ function siteinfo_details() {
   }
 
   $lim = 0;
+  // Iteration for users.
   foreach ($user_name as $key => $value) {
 
     if (!isset($row_col[$lim][0])) {
