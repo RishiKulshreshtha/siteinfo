@@ -66,7 +66,7 @@ function siteinfo_block_view($delta = '') {
   switch ($delta) {
     case 'siteinfo':
       $block['subject'] = t('Site Information');
-      $block['content'] = render(siteinfo_details());
+      $block['content'] = siteinfo_details();
       break;
   }
   return $block;
@@ -118,51 +118,21 @@ function siteinfo_details() {
 
   $header = array(array('data' => "Site Details", 'colspan' => 2));
 
-  $rows['site_name'] = array(
-    t("Site name"), t("@site_name", array('@site_name' => $site_name)),
-  );
-  $rows['drupal_version'] = array(
-    t("Drupal version"), t("@dr_ver", array('@dr_ver' => $drupal_version)),
-  );
-  $rows['install_date'] = array(
-    t("Install date"), t("@ins_date", array('@ins_date' => $install_date)),
-  );
-  $rows['cron_run'] = array(
-    t("Last cron run"), t("@cron_run", array('@cron_run' => $cron_run)),
-  );
-  $rows['cln_url'] = array(
-    t("Clean url"), t("@clr_url", array('@clr_url' => $cln_url)),
-  );
-  $rows['file_temporary_path'] = array(
-    t("File temporary path"), t("@ftem_path", array('@ftem_path' => $file_temporary_path)),
-  );
-  $rows['php_version'] = array(
-    t("Php version"), t("@php_ver", array('@php_ver' => $php_version)),
-  );
-  $rows['db_driver'] = array(
-    t("Database driver"), t("@db_driv", array('@db_driv' => $db_driver)),
-  );
-  $rows['db_name'] = array(
-    t("Database name"), t("@db_name", array('@db_name' => $db_name)),
-  );
-  $rows['default_theme'] = array(
-    t("Default theme"), t("@def_theme", array('@def_theme' => $default_theme)),
-  );
-  $rows['admin_theme'] = array(
-    t("Admin theme"), t("@admin_theme", array('@admin_theme' => $admin_theme)),
-  );
-  $rows['count_role'] = array(
-    t("Roles"), t("@count_role", array('@count_role' => $count_role)),
-  );
-  $rows['count_user'] = array(
-    t("Active users"), t("@count_usr", array('@count_usr' => $count_user)),
-  );
-  $rows['count_cont_type'] = array(
-    t("Content type"), t("@count_cont", array('@count_cont' => $count_cont_type)),
-  );
-  $rows['count_mod'] = array(
-    t("Enables module"), t("@count_mod", array('@count_mod' => $count_mod)),
-  );
+  $rows['site_name'] = array(t("Site name"), $site_name);
+  $rows['drupal_version'] = array(t("Drupal version"), $drupal_version);
+  $rows['install_date'] = array(t("Install date"), $install_date);
+  $rows['cron_run'] = array(t("Last cron run"), $cron_run);
+  $rows['cln_url'] = array(t("Clean url"), $cln_url);
+  $rows['file_temporary_path'] = array(t("File temporary path"), $file_temporary_path);
+  $rows['php_version'] = array(t("Php version"), $php_version);
+  $rows['db_driver'] = array(t("Database driver"), $db_driver);
+  $rows['db_name'] = array(t("Database name"), $db_name);
+  $rows['default_theme'] = array(t("Default theme"), $default_theme);
+  $rows['admin_theme'] = array(t("Admin theme"), $admin_theme);
+  $rows['count_role'] = array(t("Roles"), $count_role);
+  $rows['count_user'] = array(t("Active users"), $count_user);
+  $rows['count_cont_type'] = array(t("Content type"), $count_cont_type);
+  $rows['count_mod'] = array(t("Enables module"), $count_mod);
 
   $output = theme('table', array('header' => $header, 'rows' => $rows));
 
@@ -246,7 +216,8 @@ function siteinfo_details() {
   $current_page = pager_default_initialize(count($row_col), $per_page);
   // Split list into page sized chunks.
   $chunks = array_chunk($row_col, $per_page, TRUE);
-  $header = array('Content Type', 'Node', 'Roles', 'Modules', 'Active users');
+  $header = array(t('Content Type'), t('Node'), t('Roles'), t('Modules'),
+    t('Active users'));
   $output .= theme('table', array('header' => $header, 'rows' => $chunks[$current_page]));
   // Show the pager.
   $output .= theme('pager', array('quantity', count($row_col)));
