@@ -1,0 +1,4 @@
+name: Site Information
+type: module
+description: 'Provides the users to have a quick glance over the site information.'
+core: 8.x

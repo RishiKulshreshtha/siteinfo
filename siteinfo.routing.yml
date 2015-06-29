@@ -1,0 +1,7 @@
+siteinfo:
+  path: 'admin/siteinfo'
+  defaults:
+    _title: 'Site Information'
+    _controller: '\Drupal\siteinfo\SiteInformationController::siteInformation'
+  requirements:
+    _access: 'TRUE'
