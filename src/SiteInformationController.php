@@ -9,6 +9,8 @@ namespace Drupal\siteinfo;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\node\Entity\NodeType;
+use Drupal\user\Entity\Role;
+use Drupal\Core\Database\Database;
 /**
  * Controller for Site Information.
  */
@@ -25,16 +27,6 @@ class SiteInformationController extends ControllerBase {
     $php_version = phpversion();
     $roles = user_roles(TRUE);
     $count_role = count($roles);
- 
-    // Access site variables.
-   
-		//$site_name = variable_get('site_name');
-    /*$default_theme = variable_get('theme_default');
-    $admin_theme = variable_get('admin_theme');
-    $file_temporary_path = variable_get('file_temporary_path');
-    $install_time = variable_get('install_time');
-    $cron_last_run = variable_get('cron_last');*/
-    //$clean_url = \Drupal::config('system.module')->get('instal_time');
 		$site_name = \Drupal::config('system.site')->get('name');
 		$default_theme = \Drupal::config('system.theme')->get('default');
 		$admin_theme = \Drupal::config('system.theme')->get('admin');
@@ -44,7 +36,9 @@ class SiteInformationController extends ControllerBase {
 		$install_date = \Drupal::config('system.module')->get('instal_time');
 		$cron_run = \Drupal::config('system.cron')->get('threshold');
 		$db_driver = \Drupal::database()->driver();
-		$db_name = \Drupal::config('node.type')->get('name');
+		$database_con = Database::getConnectionInfo();
+		$db_name = $database_con['default']['database'];
+	
     // Format date.
     //$install_date = format_date($install_time, 'dateonly');
     //$cron_run = format_date($cron_last_run, 'dateonly');
@@ -60,10 +54,15 @@ class SiteInformationController extends ControllerBase {
     // Get list of content type.
     $cont_type = node_type_get_types();
     $count_cont_type = count($cont_type);
-
+    
+		//$mod_list = \Drupal::config('system.schema')->get('system.site');
     // Get list of enabled module.
-    $mod_list = 10;
+    // $mod_list = 10;
+		//include_once $core . '/includes/module.inc';
+		//$module_list['system']['filename'] = 'modules/system/system.module';
+		//$mod_list = module_list(NULL, $module_list);
 		// $mod_list = module_list();
+		
     $count_mod = count($mod_list);
     $drupal_version = \Drupal::VERSION;
 
@@ -86,47 +85,46 @@ class SiteInformationController extends ControllerBase {
     $rows['count_user'] = array(t("Active users"), $count_user);
     $rows['count_cont_type'] = array(t("Content type"), $count_cont_type);
     $rows['count_mod'] = array(t("Enables module"), $count_mod);
+		
+		$content['table_detail'] = array(
+      '#type' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
+      '#empty' => t('No entries available.'),
+    );
 /*
     $output = theme('table', array('header' => $header, 'rows' => $rows));
 */
     $lim = 0;
-		//echo "<pre>"; print_r($cont_type); 
-
     // Iteration for content-type.
     foreach ($cont_type as $key => $value) {
-		  //$data1 = NodeType::load($value->bundle());
-			//echo "<pre>"; print_r($key); 
-			
-			//echo "ddd $key";
-		  //$da =  \Drupal::config('node.schema.article')->get('name');
-      $name = NodeType::load->getName($value->name);
-			//$row_col[$lim][0] = t("@cont_name", array('@cont_name' => $value->name));
-			/*
-      $query = new EntityFieldQuery();
-      // Grab nodes.
-      $query->entityCondition('entity_type', 'node')
+      $name = $value->get('name');
+			$row_col[$lim][0] = t("@cont_name", array('@cont_name' => $name));
+      $query = \Drupal::entityQuery('node')
       // Filter by content type.
-      ->entityCondition('bundle', $key)
+      ->condition('type', $key)
       // Filter by published.
-      ->propertyCondition('status', 1)
+      ->condition('status', 1)
       // Count.
       ->count();
       $result = $query->execute();
       $row_col[$lim][1] = t("@cout_node", array('@cout_node' => $result));
-      $lim++;*/
-    }
-		//exit;
-/*
-    $lim = 0;
-    // Iteration for roles.
-    foreach ($roles as $key) {
-      if (!isset($row_col[$lim][0])) {
-        $row_col[$lim][1] = "";
-      }
-      $row_col[$lim][2] = t("@role_name", array('@role_name' => $key));
       $lim++;
     }
-
+    $lim = 0;
+    // Iteration for roles.
+    foreach ($roles as $key => $value) {
+      $role_name = $value->get('label');
+			if (!isset($row_col[$lim][0])) {
+        $row_col[$lim][0] = NULL;
+      }
+			if (!isset($row_col[$lim][1])) {
+        $row_col[$lim][1] = NULL;
+      }
+      $row_col[$lim][2] = t("@role_name", array('@role_name' => $role_name));
+      $lim++;
+    }
+/*
     $lim = 0;
     // Iteration for modules.
     foreach ($mod_list as $key) {
@@ -142,67 +140,53 @@ class SiteInformationController extends ControllerBase {
       $row_col[$lim][3] = t("@mod_name", array('@mod_name' => $key));
       $lim++;
     }
-
+*/
     $lim = 0;
     // Iteration for users.
     foreach ($user_name as $key => $value) {
       if (!isset($row_col[$lim][0])) {
-        $row_col[$lim][0] = "";
+        $row_col[$lim][0] = NULL;
       }
       if (!isset($row_col[$lim][1])) {
-        $row_col[$lim][1] = "";
+        $row_col[$lim][1] = NULL;
       }
       if (!isset($row_col[$lim][2])) {
-        $row_col[$lim][2] = "";
+        $row_col[$lim][2] = NULL;
       }
-      if (!isset($row_col[$lim][3])) {
-        $row_col[$lim][3] = "";
-      }
-
-      $row_col[$lim][4] = t("@usr_name", array('@usr_name' => $value));
+      /*if (!isset($row_col[$lim][3])) {
+        $row_col[$lim][3] = NULL;
+      }*/
+      $row_col[$lim][3] = t("@usr_name", array('@usr_name' => $value));
       $lim++;
     }
-
     $lim = 0;
     foreach ($row_col as $key => $value) {
-      if (!isset($row_col[$lim][4])) {
-        $row_col[$lim][4] = "";
+      if (!isset($row_col[$lim][3])) {
+        $row_col[$lim][3] = NULL;
       }
       $lim++;
     }
-  /*  
-    $per_page = 10;
+  
+  $per_page = 2;
   // Initialize the pager.
   $current_page = pager_default_initialize(count($row_col), $per_page);
   // Split list into page sized chunks.
   $chunks = array_chunk($row_col, $per_page, TRUE);
   $header = array(t('Content Type'), t('Node'), t('Roles'), t('Modules'),
     t('Active users'));
-  $output .= theme('table', array('header' => $header, 'rows' => $chunks[$current_page]));
+ // $output .= _theme('table', array('header' => $header, 'rows' => $chunks[$current_page]));
   // Show the pager.
-  $output .= theme('pager', array('quantity', count($row_col)));
-  return $output;
+ // $output .= _theme('pager', array('quantity', count($row_col)));
+  /*return $output; #quantity
   */
-    $content['table'] = array(
+	//echo "<pre>"; print_r($chunks); exit;
+    $content['table_brief'] = array(
       '#type' => 'table',
-      '#header' => $headers,
-      '#rows' => $rows,
+      '#header' => $header,
+      '#rows' => $row_col,
       '#empty' => t('No entries available.'),
+			
     );
-
-		
-	/*$table = array(
-  '#type' => 'table',
-  '#header' => $header,
-  '#rows' => $rows,
-  '#attributes' => array(
-    'id' => 'my-module-table',
-    ),
-  );
-  $markup = drupal_render($table);
-  // Pager is not an element type, use #theme directly.
-  $pager = array('#theme' => 'pager');
-  $markup .= drupal_render($pager);*/
   return $content;
   }
 }

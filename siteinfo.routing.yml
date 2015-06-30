@@ -3,5 +3,5 @@ siteinfo:
   defaults:
     _title: 'Site Information'
     _controller: '\Drupal\siteinfo\SiteInformationController::siteInformation'
-  requirements:
-    _access: 'TRUE'
+   requirements:
+    _permission: 'access site information'
