@@ -8,9 +8,7 @@
 namespace Drupal\siteinfo;
 
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\node\Entity\NodeType;
-use Drupal\user\Entity\Role;
-use Drupal\Core\Database\Database;
+
 /**
  * Controller for Site Information.
  */
@@ -30,19 +28,19 @@ class SiteInformationController extends ControllerBase {
 		$site_name = \Drupal::config('system.site')->get('name');
 		$default_theme = \Drupal::config('system.theme')->get('default');
 		$admin_theme = \Drupal::config('system.theme')->get('admin');
-		$front_page = \Drupal::config('system.site')->get('front');
+		$front_page = \Drupal::config('system.site')->get('page.front');
+		$country = \Drupal::config('system.date')->get('country.default');
+		$time_zone = \Drupal::config('system.date')->get('timezone.default');
 		$language_code = \Drupal::config('system.site')->get('default_langcode');
-		$file_temporary_path =  \Drupal::config('system.file')->get('temporary');
-		$install_date = \Drupal::config('system.module')->get('instal_time');
-		$cron_run = \Drupal::config('system.cron')->get('threshold');
+		$file_system =  \Drupal::config('system.file')->get('default_scheme');
+		$file_path =  \Drupal::config('system.file')->get('path.temporary');
+		$install_date = \Drupal::service('date.formatter')->formatTimeDiffSince($installing_date);
+		$cron_last = \Drupal::state()->get('system.cron_last');
+		$cron_run = \Drupal::service('date.formatter')->formatTimeDiffSince($cron_last);
 		$db_driver = \Drupal::database()->driver();
 		$database_con = Database::getConnectionInfo();
 		$db_name = $database_con['default']['database'];
-	
-    // Format date.
-    //$install_date = format_date($install_time, 'dateonly');
-    //$cron_run = format_date($cron_last_run, 'dateonly');
-    $cln_url = isset($clean_url) ? "Yes" : "No";
+		
     // Get list of enabled module.
     $query = db_select('users_field_data', 'u');
     $query->fields('u', array('name'));
@@ -50,32 +48,25 @@ class SiteInformationController extends ControllerBase {
     // Filter by active user.
     $user_name = $query->execute()->fetchAllKeyed(0, 0);
     $count_user = count($user_name);
-
     // Get list of content type.
     $cont_type = node_type_get_types();
+    // Get list of enabled modules.
     $count_cont_type = count($cont_type);
-    
-		//$mod_list = \Drupal::config('system.schema')->get('system.site');
-    // Get list of enabled module.
-    // $mod_list = 10;
-		//include_once $core . '/includes/module.inc';
-		//$module_list['system']['filename'] = 'modules/system/system.module';
-		//$mod_list = module_list(NULL, $module_list);
-		// $mod_list = module_list();
-		
+		$mod_list = \Drupal::moduleHandler()->getModuleList();
     $count_mod = count($mod_list);
     $drupal_version = \Drupal::VERSION;
-
+    // Set header.
     $header = array(array('data' => "Site Details", 'colspan' => 2));
-
+    // Set rows.
     $rows['site_name'] = array(t("Site name"), $site_name);
     $rows['drupal_version'] = array(t("Drupal version"), $drupal_version);
     $rows['language_code'] = array(t("Default language code"), $language_code);
+		$rows['country'] = array(t("Country"), $country);
+		$rows['time_zone'] = array(t("Time Zone"), $time_zone);
 		$rows['front_page'] = array(t("Front Page"), $front_page);
-		$rows['install_date'] = array(t("Install date"), $install_date);
     $rows['cron_run'] = array(t("Last cron run"), $cron_run);
-    $rows['cln_url'] = array(t("Clean url"), $cln_url);
-    $rows['file_temporary_path'] = array(t("File temporary path"), $file_temporary_path);
+    $rows['file_system'] = array(t("File system"), $file_system);
+		$rows['file_path'] = array(t("File path"), $file_path);
     $rows['php_version'] = array(t("Php version"), $php_version);
     $rows['db_driver'] = array(t("Database driver"), $db_driver);
     $rows['db_name'] = array(t("Database name"), $db_name);
@@ -85,16 +76,14 @@ class SiteInformationController extends ControllerBase {
     $rows['count_user'] = array(t("Active users"), $count_user);
     $rows['count_cont_type'] = array(t("Content type"), $count_cont_type);
     $rows['count_mod'] = array(t("Enables module"), $count_mod);
-		
+		// Display in table format.
 		$content['table_detail'] = array(
       '#type' => 'table',
       '#header' => $header,
       '#rows' => $rows,
       '#empty' => t('No entries available.'),
     );
-/*
-    $output = theme('table', array('header' => $header, 'rows' => $rows));
-*/
+
     $lim = 0;
     // Iteration for content-type.
     foreach ($cont_type as $key => $value) {
@@ -121,29 +110,21 @@ class SiteInformationController extends ControllerBase {
 			if (!isset($row_col[$lim][1])) {
         $row_col[$lim][1] = NULL;
       }
+			// Count number of user for specific role.
+			$num_users = db_query("SELECT COUNT(*) FROM user__roles WHERE roles_target_id = :target_id", array(':target_id' => 'administrator'));
+      $select = db_select('user__roles', 'usr');
+      $select->fields('usr', array('entity_id'));
+      $select->condition('roles_target_id', $key);
+      $result = $select->execute()->fetchAllKeyed(0,0);
+      $number_of_usr = count($result);
+			// Store in rows.
       $row_col[$lim][2] = t("@role_name", array('@role_name' => $role_name));
+			$row_col[$lim][3] = t("@usr_count", array('@usr_count' => $number_of_usr));
       $lim++;
     }
-/*
     $lim = 0;
     // Iteration for modules.
-    foreach ($mod_list as $key) {
-      if (!isset($row_col[$lim][0])) {
-        $row_col[$lim][0] = "";
-      }
-      if (!isset($row_col[$lim][1])) {
-        $row_col[$lim][1] = "";
-      }
-      if (!isset($row_col[$lim][2])) {
-        $row_col[$lim][2] = "";
-      }
-      $row_col[$lim][3] = t("@mod_name", array('@mod_name' => $key));
-      $lim++;
-    }
-*/
-    $lim = 0;
-    // Iteration for users.
-    foreach ($user_name as $key => $value) {
+    foreach ($mod_list as $key => $value) {
       if (!isset($row_col[$lim][0])) {
         $row_col[$lim][0] = NULL;
       }
@@ -153,40 +134,27 @@ class SiteInformationController extends ControllerBase {
       if (!isset($row_col[$lim][2])) {
         $row_col[$lim][2] = NULL;
       }
-      /*if (!isset($row_col[$lim][3])) {
+			if (!isset($row_col[$lim][3])) {
         $row_col[$lim][3] = NULL;
-      }*/
-      $row_col[$lim][3] = t("@usr_name", array('@usr_name' => $value));
+      }
+      $row_col[$lim][4] = t("@mod_name", array('@mod_name' => $key));
       $lim++;
     }
     $lim = 0;
     foreach ($row_col as $key => $value) {
-      if (!isset($row_col[$lim][3])) {
-        $row_col[$lim][3] = NULL;
+      if (!isset($row_col[$lim][4])) {
+        $row_col[$lim][4] = NULL;
       }
       $lim++;
     }
-  
-  $per_page = 2;
-  // Initialize the pager.
-  $current_page = pager_default_initialize(count($row_col), $per_page);
-  // Split list into page sized chunks.
-  $chunks = array_chunk($row_col, $per_page, TRUE);
-  $header = array(t('Content Type'), t('Node'), t('Roles'), t('Modules'),
-    t('Active users'));
- // $output .= _theme('table', array('header' => $header, 'rows' => $chunks[$current_page]));
-  // Show the pager.
- // $output .= _theme('pager', array('quantity', count($row_col)));
-  /*return $output; #quantity
-  */
-	//echo "<pre>"; print_r($chunks); exit;
+    $header = array(t('Content Type'), t('Node'), t('Roles'), t('users'),
+		  t('Modules'));
     $content['table_brief'] = array(
       '#type' => 'table',
       '#header' => $header,
       '#rows' => $row_col,
       '#empty' => t('No entries available.'),
-			
     );
-  return $content;
+    return $content;
   }
 }
