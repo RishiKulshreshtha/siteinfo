@@ -5,9 +5,11 @@
  * Contains \Drupal\siteinfo\SiteInformationController.
  */
 
-namespace Drupal\siteinfo;
+namespace Drupal\siteinfo\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Database\Database;
 
 /**
  * Controller for Site Information.
@@ -15,9 +17,9 @@ use Drupal\Core\Controller\ControllerBase;
 class SiteInformationController extends ControllerBase {
 
   /**
-   * Render a list of entries in the database.
+   * Implement siteInformation function.
    */
-  public function siteInformation() {
+  public static function siteInformation() {
     $content = array();
     global $databases;
     $db_name = $databases['default']['default']['database'];
@@ -111,7 +113,8 @@ class SiteInformationController extends ControllerBase {
         $row_col[$lim][1] = NULL;
       }
 			// Count number of user for specific role.
-			$num_users = db_query("SELECT COUNT(*) FROM user__roles WHERE roles_target_id = :target_id", array(':target_id' => 'administrator'));
+			$num_users = db_query("SELECT COUNT(*) FROM user__roles 
+    WHERE roles_target_id = :target_id", array(':target_id' => 'administrator'));
       $select = db_select('user__roles', 'usr');
       $select->fields('usr', array('entity_id'));
       $select->condition('roles_target_id', $key);
