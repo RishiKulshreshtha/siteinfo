@@ -1,3 +1,10 @@
 siteinfo.description:
   title: Site Information
-  route_name: siteinfo
+  parent: system.admin
+  description: 'Provides the users to have a quick glance over the site information.'
+  route_name: siteinfo.description
+siteinfo.site_page:
+  title: Site Information
+  route_name: siteinfo.site_page
+  menu_name: footer
+  enabled: 0

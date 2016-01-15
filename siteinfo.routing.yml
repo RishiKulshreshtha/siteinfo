@@ -1,7 +1,14 @@
-siteinfo:
-  path: 'admin/siteinfo'
+siteinfo.description:
+  path: '/admin/siteinfo'
   defaults:
     _title: 'Site Information'
-    _controller: '\Drupal\siteinfo\SiteInformationController::siteInformation'
-   requirements:
+    _controller: '\Drupal\siteinfo\Controller\SiteInformationController::siteInformation'
+  requirements:
+    _permission: 'access site information'
+siteinfo.site_page:
+  path: '/siteinfo'
+  defaults:
+    _title: 'Site Information'
+    _controller: '\Drupal\siteinfo\Controller\SiteInformationController::siteInformation'
+  requirements:
     _permission: 'access site information'
